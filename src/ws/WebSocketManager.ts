@@ -42,22 +42,19 @@ export default class WebSocketManager extends EventEmitter {
   private pack: (value: any) => Buffer | Uint8Array;
   private unpack: (messagePack: Buffer | Uint8Array) => any;
 
-  private commands: Map<
-    string,
-    (ws: WebSocketManager, message: any) => Promise<void> | void
-  > = new Map(
-    readdirSync(join(__dirname, "commands"))
-      .filter((file: string) =>
-        file.endsWith(__filename.slice(__filename.length - 3))
-      )
-      .map((file: string) => [
-        file.slice(0, -3),
-        require(join(__dirname, "commands", file)).default,
-      ])
-  );
+  private commands: Map<string, (ws: WebSocketManager, message: any) => Promise<void> | void> =
+    new Map(
+      readdirSync(join(__dirname, "commands"))
+        .filter((file: string) => file.endsWith(__filename.slice(__filename.length - 3)))
+        .map((file: string) => [
+          file.slice(0, -3),
+          require(join(__dirname, "commands", file)).default,
+        ])
+    );
   private lastIddCalculation = Date.now();
   private spool?: any;
 
+  public mayReconnect = true;
   public heartbeat?: NodeJS.Timeout;
   public socket?: WebSocket;
   public client: Client;
@@ -77,11 +74,7 @@ export default class WebSocketManager extends EventEmitter {
             new Promise<any>(async (resolve, reject) => {
               let spool_ = await checkSpool(spool);
 
-              if (
-                !spool_ ||
-                !spool_.health.flags.online ||
-                spool_.health.flags.avoidDueToHighLoad
-              )
+              if (!spool_ || !spool_.health.flags.online || spool_.health.flags.avoidDueToHighLoad)
                 return reject();
 
               resolve(spool_);
@@ -138,33 +131,23 @@ export default class WebSocketManager extends EventEmitter {
   }
 
   public async connect(resume = false, endpoint?: string): Promise<void> {
-    let ribbon = await api(
-      "/server/ribbon",
-      this.client.token,
-      undefined,
-      undefined,
-      undefined,
-      {
-        expire: new Date().getTime() + 15 * 60000,
-        key: "server_ribbon_" + this.client.token,
-      }
-    );
+    let ribbon = await api("/server/ribbon", this.client.token, undefined, undefined, undefined, {
+      expire: new Date().getTime() + 15 * 60000,
+      key: "server_ribbon_" + this.client.token,
+    });
 
     if (!this.spool) this.spool = await this.getOptimalSpool(ribbon);
 
     if (!endpoint) ({ endpoint } = ribbon);
 
-    this.socket = new WebSocket(
-      `wss://${this.spool.host}${endpoint}`,
-      ribbon.spools.token
-    );
+    this.socket = new WebSocket(`wss://${this.spool.host}${endpoint}`, ribbon.spools.token);
 
     this.socket.on("error", (err: string) => {
       throw new Error(err);
     });
 
     this.socket.on("close", () => {
-      this.connect(true); // i guess temporary fix on silent disconnect
+      this.mayReconnect && this.connect(true); // i guess temporary fix on silent disconnect
     });
 
     this.socket.on("open", () => {
@@ -185,10 +168,7 @@ export default class WebSocketManager extends EventEmitter {
 
       this.heartbeat = setInterval(() => {
         this.socket?.send(
-          Buffer.from([
-            WebSocketManager.MESSAGE_TYPE.EXTENSION,
-            WebSocketManager.EXTENSION.PING,
-          ])
+          Buffer.from([WebSocketManager.MESSAGE_TYPE.EXTENSION, WebSocketManager.EXTENSION.PING])
         );
       }, 5000);
     });
@@ -208,13 +188,8 @@ export default class WebSocketManager extends EventEmitter {
             lengths.push(length);
           }
           lengths.forEach((length, i) => {
-            let offset = lengths
-              .slice(0, i)
-              .reduce((a, b) => a + b, 5 + lengths.length * 4);
-            this.socket?.emit(
-              "message",
-              data.subarray(offset, offset + length)
-            );
+            let offset = lengths.slice(0, i).reduce((a, b) => a + b, 5 + lengths.length * 4);
+            this.socket?.emit("message", data.subarray(offset, offset + length));
           });
           break;
         case WebSocketManager.MESSAGE_TYPE.EXTENSION:
@@ -230,11 +205,7 @@ export default class WebSocketManager extends EventEmitter {
     });
   }
 
-  public send(
-    message: any,
-    id = true,
-    type = WebSocketManager.MESSAGE_TYPE.STANDARD
-  ) {
+  public send(message: any, id = true, type = WebSocketManager.MESSAGE_TYPE.STANDARD) {
     if (id) {
       message.id = ++this.messageId;
 
@@ -246,10 +217,7 @@ export default class WebSocketManager extends EventEmitter {
           0,
           Math.max(
             100,
-            Math.min(
-              30 * (1000 / (currentCalculation - this.lastIddCalculation)),
-              2000
-            )
+            Math.min(30 * (1000 / (currentCalculation - this.lastIddCalculation)), 2000)
           )
         );
         this.lastIddCalculation = currentCalculation;

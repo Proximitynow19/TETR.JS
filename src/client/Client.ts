@@ -75,6 +75,7 @@ export default class Client {
   }
 
   public logout(): void {
+    this.ws.mayReconnect = false;
     this.ws.send({ command: "die" }, false);
     clearInterval(this.ws.heartbeat);
     this.ws.socket?.close();
