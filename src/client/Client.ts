@@ -106,4 +106,7 @@ export default interface Client extends EventEmitter {
 
   /** Emitted when the client gets kicked by the server. */
   on(eventName: "kick", listener: (reason: string) => void): this;
+
+  /** Emitted when a non fatal error occurs. */
+  on(eventName: "err", listener: (reason: string) => void): this;
 }
