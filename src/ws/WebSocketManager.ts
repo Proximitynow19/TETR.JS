@@ -142,12 +142,12 @@ export default class WebSocketManager extends EventEmitter {
 
     this.socket = new WebSocket(`wss://${this.spool.host}${endpoint}`, ribbon.spools.token);
 
-    this.socket.on("error", (err: string) => {
-      throw new Error(err);
-    });
+    // this.socket.on("error", (err: string) => {
+    //   throw new Error(err);
+    // });
 
     this.socket.on("close", () => {
-      this.mayReconnect && this.connect(true); // i guess temporary fix on silent disconnect
+      this.mayReconnect && this.connect(true);
     });
 
     this.socket.on("open", () => {

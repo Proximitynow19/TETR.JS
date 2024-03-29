@@ -4,11 +4,12 @@ import api from "../util/api";
 import Room from "../room/Room";
 import User from "../user/User";
 import channelApi from "../util/channelApi";
+import { EventEmitter } from "ws";
 
 /**
  * Represents the client.
  */
-export default class Client {
+export default class Client extends EventEmitter {
   private readonly ws = new WebSocketManager(this);
 
   /**
@@ -97,4 +98,12 @@ export default class Client {
 
     return new User(this.ws, user_);
   }
+}
+
+export default interface Client extends EventEmitter {
+  /** Emitted when the client violates Ribbon's protocol. */
+  on(eventName: "nope", listener: (reason: string) => void): this;
+
+  /** Emitted when the client gets kicked by the server. */
+  on(eventName: "kick", listener: (reason: string) => void): this;
 }
