@@ -1,6 +1,40 @@
+import { Packr, Unpackr, addExtension } from "msgpackr";
 import { APIResponse } from "./types";
 
 const cache: Map<string, { expire: number; data: any }> = new Map();
+
+addExtension({
+  type: 1,
+  read: (e) =>
+    null === e
+      ? {
+          success: true,
+        }
+      : {
+          success: true,
+          ...e,
+        },
+});
+addExtension({
+  type: 2,
+  read: (e) =>
+    null === e
+      ? {
+          success: false,
+        }
+      : {
+          success: false,
+          error: e,
+        },
+});
+
+const unpackr = new Unpackr({
+  bundleStrings: true,
+});
+
+const packr = new Packr({
+  bundleStrings: true,
+});
 
 export default async function (
   endpoint: string,
@@ -24,16 +58,19 @@ export default async function (
   }
 
   let headers: any = {
-    Accept: "application/json",
+    Accept: "application/vnd.osk.theorypack",
     ...headers_,
   };
 
   if (token) headers.Authorization = `Bearer ${token}`;
+  if (method == "POST") headers["content-type"] = "application/vnd.osk.theorypack";
   let response: Promise<APIResponse> = fetch(`https://tetr.io/api${endpoint}`, {
     method,
-    body: body_ ? Buffer.from(JSON.stringify(body_)) : undefined,
+    body: body_ ? packr.pack(body_) : undefined,
     headers,
-  }).then((res) => res.json());
+  })
+    .then((res) => res.arrayBuffer())
+    .then((res) => unpackr.unpack(Buffer.from(res)));
 
   if (cache_) cache.set(cache_.key, { expire: cache_.expire, data: response });
 

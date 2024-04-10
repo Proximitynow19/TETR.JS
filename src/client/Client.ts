@@ -64,13 +64,10 @@ export default class Client extends EventEmitter {
    * A "user" account must not be used and a "bot" account is required. To obtain one, contact [osk](https://osk.sh/).
    */
   public async login_password(username: string, password: string): Promise<void> {
-    let auth = await api(
-      "/users/authenticate",
-      undefined,
-      { "Content-Type": "application/json" },
-      "POST",
-      { username, password }
-    );
+    let auth = await api("/users/authenticate", undefined, undefined, "POST", {
+      username,
+      password,
+    });
 
     await this.login(auth.token);
   }
