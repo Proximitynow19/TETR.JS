@@ -44,6 +44,11 @@ export default class Client extends EventEmitter {
       key: "users_me_" + token,
     });
 
+    if (me.user.role !== "bot")
+      throw new Error(
+        `Client "${me.user.username}" is not a bot account. Contact TETR.IO Support (https://tetr.io/about/support/) to apply for a bot account.`
+      );
+
     this.me = new ClientUser(this.ws, me, await this.fetchUser(me.user._id));
 
     await this.ws.connect();
