@@ -74,7 +74,7 @@ export default async function (
 
   if (cache_) cache.set(cache_.key, { expire: cache_.expire, data: response });
 
-  if (!(await response).success) throw Error((await response).error.msg);
+  if (!(await response).success) throw Error((await response).error);
 
   return await response;
 }
