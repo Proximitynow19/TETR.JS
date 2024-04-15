@@ -36,6 +36,15 @@ const packr = new Packr({
   bundleStrings: true,
 });
 
+export class APIError extends Error {
+  public response: APIResponse;
+  constructor(res: APIResponse) {
+    super(res.error.msg);
+    this.response = res;
+    Error.captureStackTrace(this, APIError);
+  }
+}
+
 export default async function (
   endpoint: string,
   token?: string,
@@ -74,7 +83,7 @@ export default async function (
 
   if (cache_) cache.set(cache_.key, { expire: cache_.expire, data: response });
 
-  if (!(await response).success) throw Error((await response).error);
+  if (!(await response).success) throw new APIError(await response);
 
   return await response;
 }
