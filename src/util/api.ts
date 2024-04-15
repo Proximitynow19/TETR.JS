@@ -1,6 +1,8 @@
 import { Packr, Unpackr, addExtension } from "msgpackr";
 import { APIResponse } from "./types";
 
+const cacheSessionID = `SESS-${Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)}`;
+
 const cache: Map<string, { expire: number; data: any }> = new Map();
 
 addExtension({
@@ -68,6 +70,7 @@ export default async function (
 
   let headers: any = {
     Accept: "application/vnd.osk.theorypack",
+    "X-Session-ID": cacheSessionID,
     ...headers_,
   };
 
