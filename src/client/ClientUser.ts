@@ -10,11 +10,6 @@ export default class ClientUser extends EventEmitter {
 
     this.ws = ws;
 
-    if (me.role !== "bot")
-      throw new Error(
-        `Client "${me.username}" is not a bot account. Contact osk (https://osk.sh/) to apply for a bot account.`
-      );
-
     this.user = user;
     this.email = me.email;
     this.privacy = {
@@ -172,16 +167,10 @@ export default class ClientUser extends EventEmitter {
 
 export default interface Client extends EventEmitter {
   /** Emitted when a user sends a direct message to the client. */
-  on(
-    eventName: "dm",
-    listener: (message: { content: string; author: User }) => void
-  ): this;
+  on(eventName: "dm", listener: (message: { content: string; author: User }) => void): this;
 
   /** Emitted when a user sends an invite to the client.*/
-  on(
-    eventName: "invite",
-    listener: (invite: { room: string; author: User }) => void
-  ): this;
+  on(eventName: "invite", listener: (invite: { room: string; author: User }) => void): this;
 
   /** Emitted when the server sends an update on how many users online. */
   on(eventName: "online", listener: (online: number) => void): this;

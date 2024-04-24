@@ -1,5 +1,5 @@
 import WebSocketManager from "../WebSocketManager";
 
-export default function (_: WebSocketManager, { data }: any) {
-  console.warn(data);
+export default function (ws: WebSocketManager, { data }: any) {
+  ws.client.emit("err", data);
 }

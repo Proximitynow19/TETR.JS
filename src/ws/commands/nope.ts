@@ -1,8 +1,8 @@
 import WebSocketManager from "../WebSocketManager";
 
 export default function (ws: WebSocketManager, { reason }: any) {
+  ws.mayReconnect = false;
   clearInterval(ws.heartbeat);
   ws.socket?.close();
-
-  throw new Error(reason);
+  ws.client.emit("nope", reason);
 }

@@ -4,11 +4,12 @@ import api from "../util/api";
 import Room from "../room/Room";
 import User from "../user/User";
 import channelApi from "../util/channelApi";
+import { EventEmitter } from "ws";
 
 /**
  * Represents the client.
  */
-export default class Client {
+export default class Client extends EventEmitter {
   private readonly ws = new WebSocketManager(this);
 
   /**
@@ -43,6 +44,11 @@ export default class Client {
       key: "users_me_" + token,
     });
 
+    if (me.user.role !== "bot")
+      throw new Error(
+        `Client "${me.user.username}" is not a bot account. Contact TETR.IO Support (https://tetr.io/about/support/) to apply for a bot account.`
+      );
+
     this.me = new ClientUser(this.ws, me, await this.fetchUser(me.user._id));
 
     await this.ws.connect();
@@ -63,18 +69,16 @@ export default class Client {
    * A "user" account must not be used and a "bot" account is required. To obtain one, contact [osk](https://osk.sh/).
    */
   public async login_password(username: string, password: string): Promise<void> {
-    let auth = await api(
-      "/users/authenticate",
-      undefined,
-      { "Content-Type": "application/json" },
-      "POST",
-      { username, password }
-    );
+    let auth = await api("/users/authenticate", undefined, undefined, "POST", {
+      username,
+      password,
+    });
 
     await this.login(auth.token);
   }
 
   public logout(): void {
+    this.ws.mayReconnect = false;
     this.ws.send({ command: "die" }, false);
     clearInterval(this.ws.heartbeat);
     this.ws.socket?.close();
@@ -96,4 +100,15 @@ export default class Client {
 
     return new User(this.ws, user_);
   }
+}
+
+export default interface Client extends EventEmitter {
+  /** Emitted when the client violates Ribbon's protocol. */
+  on(eventName: "nope", listener: (reason: string) => void): this;
+
+  /** Emitted when the client gets kicked by the server. */
+  on(eventName: "kick", listener: (reason: string) => void): this;
+
+  /** Emitted when a non fatal error occurs. */
+  on(eventName: "err", listener: (reason: string) => void): this;
 }

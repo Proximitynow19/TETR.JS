@@ -27,12 +27,14 @@ export default async function (ws: WebSocketManager, { data }: any) {
   ws.client.room.game.endData = data;
   ws.client.room.game.replaySaved = new Promise((resolve) => {
     setTimeout(() => {
+      if (data.currentboard.length == 1) return void resolve();
       ws.client.room.game?.replayData.push({
         board: data.currentboard,
         replays: (data.currentboard as any[]).map((x) => {
           let player = [...(ws.client.room.game?.players as Map<string, Player>).values()].find(
             (k) => k.user.id === x.id
           ) as Player;
+          if (player.replayFrames.length == 0) return {};
           return { frames: player.replayFrames.at(-1).frame, events: player.replayFrames };
         }),
       });

@@ -230,9 +230,7 @@ export default class Room extends EventEmitter {
     this.ws.send({ command: "room.start" });
   }
 
-  public setConfig(
-    config: { index: string; value: any }[] | Record<string, any>
-  ) {
+  public setConfig(config: { index: string; value: any }[] | Record<string, any>) {
     if (!Array.isArray(config)) {
       this.ws.send({
         command: "room.setconfig",
@@ -254,11 +252,11 @@ export default interface Room extends EventEmitter {
   /**  Emitted when a player joins the room. */
   on(eventName: "join", listener: (player: Member) => void): this;
 
+  /** Emitted when the the client gets kicked or banned from the room. */
+  on(eventName: "kick", listener: (type: string) => void): this;
+
   /** Emitted when a player sends a message. */
-  on(
-    eventName: "chat",
-    listener: (message: { content: string; author: Member }) => void
-  ): this;
+  on(eventName: "chat", listener: (message: { content: string; author: Member }) => void): this;
 
   /** Emitted when a player leaves the room. */
   on(eventName: "leave", listener: (player: User) => void): this;
@@ -270,10 +268,7 @@ export default interface Room extends EventEmitter {
   on(eventName: "start", listener: (game: Game) => void): this;
 
   /** Emitted when the game ends. */
-  on(
-    eventName: "end",
-    listener: (leaderboard: Leaderboard[], victor: Player) => void
-  ): this;
+  on(eventName: "end", listener: (leaderboard: Leaderboard[], victor: Player) => void): this;
 }
 
 export type Member = {

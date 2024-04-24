@@ -5,6 +5,7 @@ import User from "./user/User";
 import Game from "./game/Game";
 import Player from "./game/Player";
 import ClientPlayer from "./client/ClientPlayer";
+import { TetraChannel } from "./util/channelApi";
 
 export {
   Client,
@@ -16,4 +17,5 @@ export {
   Player,
   GameOptions,
   ClientPlayer,
+  TetraChannel,
 };

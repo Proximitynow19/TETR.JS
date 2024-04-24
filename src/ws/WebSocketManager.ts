@@ -54,6 +54,7 @@ export default class WebSocketManager extends EventEmitter {
   private lastIddCalculation = Date.now();
   private spool?: any;
 
+  public mayReconnect = true;
   public heartbeat?: NodeJS.Timeout;
   public socket?: WebSocket;
   public client: Client;
@@ -141,8 +142,12 @@ export default class WebSocketManager extends EventEmitter {
 
     this.socket = new WebSocket(`wss://${this.spool.host}${endpoint}`, ribbon.spools.token);
 
-    this.socket.on("error", (err: string) => {
-      throw new Error(err);
+    // this.socket.on("error", (err: string) => {
+    //   throw new Error(err);
+    // });
+
+    this.socket.on("close", () => {
+      this.mayReconnect && this.connect(true);
     });
 
     this.socket.on("open", () => {

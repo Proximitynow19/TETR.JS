@@ -67,7 +67,7 @@ This project is licensed under the MIT License. See [LICENSE](https://github.com
 
 ## Disclaimer
 
-TETR.JS is not associated with TETR.IO or osk. The token provided must match an account that has been approved as a bot account. Contact osk on Discord to receive such bot accounts.
+TETR.JS is not associated with TETR.IO or osk. The token provided must match an account that has been approved as a bot account. Contact [TETR.IO Support](https://tetr.io/about/support/) to request a bot account.
 
 ## Credits
 
