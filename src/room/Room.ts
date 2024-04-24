@@ -154,7 +154,7 @@ export default class Room extends EventEmitter {
    * ```
    */
   public async create(data: "public" | "private" = "private"): Promise<Room> {
-    this.ws.send({ command: "room.create", data });
+    this.ws.send({ command: "room.create", data: data === "public" });
     return await new Promise<Room>((resolve) => {
       this.ws.once("room.update", () => {
         return resolve(this);
@@ -173,7 +173,10 @@ export default class Room extends EventEmitter {
    * ```
    */
   public chat(data: string, announce: boolean = false): void {
-    this.ws.send({ command: "room.chat.send", data: { content: data, pinned: announce } });
+    this.ws.send({
+      command: "room.chat.send",
+      data: { content: data, pinned: announce },
+    });
   }
 
   /**
@@ -227,7 +230,9 @@ export default class Room extends EventEmitter {
     this.ws.send({ command: "room.start" });
   }
 
-  public setConfig(config: { index: string; value: any }[] | Record<string, any>) {
+  public setConfig(
+    config: { index: string; value: any }[] | Record<string, any>
+  ) {
     if (!Array.isArray(config)) {
       this.ws.send({
         command: "room.setconfig",
@@ -250,7 +255,10 @@ export default interface Room extends EventEmitter {
   on(eventName: "join", listener: (player: Member) => void): this;
 
   /** Emitted when a player sends a message. */
-  on(eventName: "chat", listener: (message: { content: string; author: Member }) => void): this;
+  on(
+    eventName: "chat",
+    listener: (message: { content: string; author: Member }) => void
+  ): this;
 
   /** Emitted when a player leaves the room. */
   on(eventName: "leave", listener: (player: User) => void): this;
@@ -262,7 +270,10 @@ export default interface Room extends EventEmitter {
   on(eventName: "start", listener: (game: Game) => void): this;
 
   /** Emitted when the game ends. */
-  on(eventName: "end", listener: (leaderboard: Leaderboard[], victor: Player) => void): this;
+  on(
+    eventName: "end",
+    listener: (leaderboard: Leaderboard[], victor: Player) => void
+  ): this;
 }
 
 export type Member = {
